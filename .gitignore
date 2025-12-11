@@ -1,5 +1,20 @@
-# Exclude JSON files
+# JSON files
 *.json
 
-# Exclude Excel files
+# Excel files
 *.xlsx
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# FAISS index files
+*.faiss
+
+# Pickle files
+*.pkl
+
+# CSV files
+*.csv
+
+# Text files
+*.txt
