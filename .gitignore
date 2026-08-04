@@ -22,3 +22,17 @@
 #Images
 *.png
 *.svg
+
+# LaTeX tables exported by the figure notebooks (regenerated on every run)
+*.tex
+
+# Per-run progress logs from the generation notebooks
+*.log
+
+# Python / OS cruft
+__pycache__/
+*.pyc
+.DS_Store
+
+# Scratch copy containing a hardcoded HF token - never commit
+mrigicopy.ipynb
