@@ -4,21 +4,25 @@ Retrieval-Augmented Generation benchmarking for zeolite synthesis literature.
 
 **Kernels used in this repo:**
 - **`mrigi_tor190_v8`** — default for everything (torch 1.12.1).
-- **`mrigi_tor190_v9`** — used **only** by notebook **23k** (v8 clone + `peft<0.4` for loading LoRA adapters).
+- **`mrigi_tor190_v9`** — used by notebooks **23k** and **23L** (v8 clone + `peft<0.4` for loading LoRA adapters).
 
 Every notebook that needs a specific kernel has a plain-text banner at the top telling you which one to select. See [zeoRAG/CLAUDE.md](CLAUDE.md) for env details.
 
 **Key notebooks:**
 - **21b** — retrieval-only benchmarking (title → DOI, FAISS vs BM25 vs Hybrid)
 - **23e** — generation benchmarking (MCQ, 90 questions, Llama + GPT-4.1, multi-category)
-- **23i / 23j / 23k** — multi-model 100-question benchmarks: **23i** = MCQ, **23j** = open-ended, **23k** = recovery run for the 7 `_COT` models that failed to load in 23j
+- **23i / 23j / 23k / 23L** — multi-model 100-question benchmarks: **23i** = MCQ, **23j** = open-ended, **23k** = recovery run for the `_COT` LoRA adapters, **23L** = Q67 backfill for question-set parity
 - **30** — LLM-as-judge quality evaluation of 23e outputs
 - **30a** — LLM-as-judge for 23i (MCQ)
 - **30b** — **dual-judge** (GPT-4.1 + GPT-4o) for 23j+23k open-ended answers, with judge-agreement views
 - **30c** — FT-vs-base analysis: per-FT-model win/loss lists vs Llama base + GPT-4.1 autoclustered topic breakdown
 - **30d** — aggregate/visualize an existing single-judge results file without re-judging
-- **30e** — ⭐ **paper figures** from the dual-judge results (Table 1 labels, read-only, no API calls)
+- **30e** — ⭐ **paper figures**, one set per judge (Table S1 labels, read-only, no API calls)
 - **30f** — GPT-5.2 no-context generation + judging (SI reference point only)
+- **30g** — ⭐ **fixes the answer-extraction bug and re-judges** — produces the results reported below
+
+**Run order for the open-ended track:** `23j` → `23k` → **`23L`** → **`30g`** → `30e`
+(`30f` for the SI reference point; `30b` is superseded by `30g`.)
 
 **Jump to:** [Methods](#methods-open-ended-evaluation) · [Results](#results-open-ended-dual-judge-evaluation)
 
@@ -26,7 +30,7 @@ Every notebook that needs a specific kernel has a plain-text banner at the top t
 
 # Methods: Open-Ended Evaluation
 
-> Everything in this section describes the **open-ended** track: generation in **23j** (+ **23k** for the LoRA-adapter variants), judging in **30b**, figures in **30e**. The older MCQ track (23e/23i → 30/30a) is documented in the notebook index further down.
+> Everything in this section describes the **open-ended** track: generation in **23j** (+ **23k** for the LoRA adapters, **23L** for question-set parity), judging in **30g**, figures in **30e**. The older MCQ track (23e/23i → 30/30a) is documented in the notebook index further down.
 
 ## 1. Corpus and retrieval index
 
@@ -47,31 +51,43 @@ Every notebook that needs a specific kernel has a plain-text banner at the top t
 
 - Started from the 100-item "Selected MCQs" sheet (GPT-generated questions grounded in specific papers).
 - **14 items flagged by domain experts** (marked with red cell fill) were removed and replaced with the first 14 items from the "replacements" sheet.
-- **Q67 was subsequently swapped** — the original item (Pd/ZSM-22 hydroisomerization) produced a context block that triggered CUDA OOM on every model at k=15; it was replaced with the previously-unused 15th replacement item (Al organization in SSZ-13). Pre-swap file preserved as `zeolite_openended_100_pre_q67swap.xlsx`.
+- **Q67 was subsequently swapped** — the original item (Pd/ZSM-22 hydroisomerization) produced a context block that triggered CUDA OOM on every model at k=15; it was replaced with the previously-unused 15th replacement item (Al organization in SSZ-13). Pre-swap file preserved as `zeolite_openended_100_pre_q67swap.xlsx`. Because the swap happened
+  *between* the 23j and 23k runs, the two groups of models were briefly evaluated on different
+  question sets; **notebook 23L** regenerates Q67 for the affected models so all 9 Table S1 variants
+  share one set.
 - **Conversion to open-ended:** only the question stem is presented to the model. The A–E answer options are discarded; the text of the correct option becomes the **reference (gold) answer** supplied to the judge.
 
 Resulting set (`zeolite_openended_100.xlsx`): 100 questions, **99 unique DOIs**, question length mean 230 chars (127–367), gold answer length mean 174 chars.
 
 ## 3. Models evaluated
 
-All models are Llama-3-8B-Instruct derivatives, evaluated in fp16 on a single GPU with sequential load/unload.
+All open-weight models are Llama-3-8B derivatives, evaluated in fp16 on a single GPU with
+sequential load/unload. **These 10 variants — and only these — are reported in the paper (Table S1).**
 
-| Family | Base variant | +COT variant |
-|---|---|---|
-| Reference | `Llama-3-8B-Instruct` (stock) | `base_llama_COT` |
-| DAPT | `DAPT_LR1e5` | `DAPT_LR1e5_COT` |
-| synv2V2 (step 80) | `synv2V2_step80` | `synv2V2_step80_COT` |
-| synv2V2 (final) | `synv2V2_final` | `synv2V2_final_COT` |
-| synv2 base (step 80) | `synv2_base_step80` | `synv2_base_step80_COT` |
-| synv2 base (final) | `synv2_base_final` | `synv2_base_final_COT` |
-| Full-paper 120M | `fullpaper_120M_LR1e5` | `fullpaper_120M_COT` |
+| # | Table S1 label | Internal name | Base model | DAPT corpus | CoT FT |
+|---|---|---|---|---|---|
+| 1 | GPT-5.2 | *(API)* | GPT-5.2 | None | No |
+| 2 | Llama-3-8B-Instruct | `Llama-3-8B-Instruct` | Llama-3-8B-Instruct | None | No |
+| 3 | Llama-3-8B-Instruct + CoT FT | `base_llama_COT` | Llama-3-8B-Instruct | None | Yes |
+| 4 | Llama-3-8B-Instruct, broad zeolite abstracts DAPT | `DAPT_LR1e5` | Llama-3-8B-Instruct | Broad zeolite abstracts | No |
+| 5 | Llama-3-8B-Instruct, broad zeolite abstracts DAPT + CoT FT | `DAPT_LR1e5_COT` | Llama-3-8B-Instruct | Broad zeolite abstracts | Yes |
+| 6 | Llama-3-8B-Instruct, synthesis abstracts DAPT | `synv2V2_step80` | Llama-3-8B-Instruct | Synthesis abstracts | No |
+| 7 | Llama-3-8B-Instruct, synthesis abstracts DAPT + CoT FT | `synv2V2_step80_COT` | Llama-3-8B-Instruct | Synthesis abstracts | Yes |
+| 8 | Llama-3-8B **base**, synthesis abstracts DAPT + CoT FT | `synv2_base_step80_COT` | Llama-3-8B **base** | Synthesis abstracts | Yes |
+| 9 | Llama-3-8B-Instruct, synthesis full-paper DAPT | `fullpaper_120M_LR1e5` | Llama-3-8B-Instruct | Synthesis full papers | No |
+| 10 | Llama-3-8B-Instruct, synthesis full-paper DAPT + CoT FT | `fullpaper_120M_COT` | Llama-3-8B-Instruct | Synthesis full papers | Yes |
 
-**Reported in the paper.** Of the 14 variants above, the 9 that appear in Table 1 (and
-therefore in all Results figures) are: `Llama-3-8B-Instruct`, `base_llama_COT`,
-`DAPT_LR1e5`, `DAPT_LR1e5_COT`, `synv2V2_step80`, `synv2V2_step80_COT`,
-`synv2_base_step80_COT`, `fullpaper_120M_LR1e5`, `fullpaper_120M_COT`. The `synv2V2_final`,
-`synv2_base_final` and `synv2_base_step80` checkpoints were judged but are not part of
-Table 1. GPT-5.2 (Table 1 row 1) has no generation results and is absent throughout.
+Row 1 (GPT-5.2) is an API model reported in the
+[SI section](#supplementary--gpt-52-reference-point-si-only-not-a-main-paper-result) only; rows
+2–10 are the nine open-weight variants in every Results table and figure.
+
+> **Not reported.** The pipeline also contains `synv2V2_final`, `synv2V2_final_COT`,
+> `synv2_base_final`, `synv2_base_final_COT` and `synv2_base_step80`. They were generated and in
+> some cases judged, but are **excluded from the paper** and from every table and figure here.
+
+> **Note on the stored generations.** The raw 23j/23k outputs contain the echoed prompt; the
+> answers used for all reported results are the re-extracted ones written by **30g** to
+> `results_23j_clean_*.json`. See [The extraction bug](#the-extraction-bug-and-what-it-changed).
 
 `_COT` variants are **LoRA adapters** (PEFT, `r=8`, `lora_alpha=16`, `lora_dropout=0.05`, target modules `q_proj`+`v_proj`) applied on top of their respective base checkpoints — not standalone models. Each adapter's base is declared in its `adapter_config.json`.
 
@@ -258,231 +274,349 @@ When no context is available, the `{context}` slot is filled with the literal st
 
 # Results: Open-Ended Dual-Judge Evaluation
 
-**Source:** `judge_results_23j_dual_final_20260802_184737.json` · **Figures:** notebook **30e** → `figures_30e/`
-**Primary judge: `gpt-4o`.** `gpt-4.1` scored every response as well; where the two disagree
-it is stated explicitly — see [Judge sensitivity](#judge-sensitivity--read-before-citing-findings-2-and-3).
+**Source data:** `judge_results_23j_clean_20260803_201225.json` (written by **30g**; judges `gpt-4o` + `gpt-4.1`, prompt-stripped answers).
+**Figures and tables:** notebook **30e**, run `20260803_212837` → `figures_30e/`.
 
-**Scope.** 9 of the 10 Table 1 variants, 100 open-ended questions, 2 retrieval conditions.
-GPT-5.2 (row 1) has no generation results (notebook **30f** is built and ready to fill this gap).
+> Every number in this section is reproduced verbatim from that 30e run — specifically
+> `figures_30e/paper_table_gpt-4o_20260803_212837.csv` (primary) and
+> `paper_table_gpt-4.1_20260803_212837.csv` (robustness check). Re-running 30e against the same
+> judge file regenerates them exactly; re-running it after a new 30g pass will supersede them.
+**Primary judge: `gpt-4o`.** `gpt-4.1` scored every response independently and is reported throughout as a **robustness check**, not as a co-equal result.
+**Metrics:** correctness and completeness (see [Why only two metrics](#why-only-two-metrics-are-reported)).
+**Scope:** the 9 open-weight Table S1 variants, 100 questions, 2 retrieval conditions. GPT-5.2 is SI-only.
 
-**Metrics reported.** Correctness and completeness only — see
-[Why only two metrics](#why-only-two-metrics-are-reported).
+> ### ⚠ These numbers supersede all earlier versions of this file
+> Results published before 2026-08-03 were computed on **contaminated judge inputs**. See
+> [The extraction bug](#the-extraction-bug-and-what-it-changed) — every number below has been
+> recomputed on corrected data, and two conclusions changed materially.
+
+---
+
+## The extraction bug, and what it changed
+
+Notebooks 23j/23k stored the **entire prompt** in `model_answer`, not the model's answer.
+`extract_completion()` split on the tokenised tag `<|start_header_id|>assistant<|end_header_id|>`,
+but the HuggingFace pipeline decodes special tokens away before that string exists — so the tag
+appeared in **0 of 100** records for every model, the split target was never found, and the
+function returned its input unchanged. Prompt + retrieved context + answer was then judged as
+"the response".
+
+| Condition | Fraction of judged text that was the actual answer |
+|---|---|
+| no context | ~50% (rest is the instruction and question) |
+| **RAG (MMR k=15)** | **~3%** (rest is 15 retrieved chunks) |
+
+Contamination correlated with score at p < 1e-5 for **both** metrics (r ≈ 0.14–0.36 correctness,
+0.35–0.52 completeness). **Notebook 30g** re-extracts every answer with a prompt-anchored
+extractor and re-judges; **notebook 23L** separately fixed a question-set mismatch (below).
+
+**What changed once corrected:**
+
+| | Before (contaminated) | After (corrected) |
+|---|---|---|
+| Finding 2 — DAPT-only + retrieval | ambiguous; 2 of 3 models ≈ 0 under `gpt-4o` | **unambiguous: all 3 negative under both judges** |
+| Judge agreement (correctness) | r = 0.880, 92% within ±1 | **r = 0.913, 95% within ±1** |
+| "no context beats RAG on completeness" | apparent effect | **artefact — gone** |
+
+The completeness "finding" in earlier drafts was an artefact: a 15,000-character wall of retrieved
+passages reads as unfocused to a gold-blind judge, and the effect was largest for the models whose
+real answers were shortest.
+
+**A second data defect, fixed by 23L.** The models had been evaluated on *two different question
+sets*, differing at index 67: the 23j run used the original Pd/ZSM-22 item (which OOM'd at MMR,
+scoring only 99 questions), while the 23k run used the SSZ-13 replacement. 23L regenerates Q67 for
+the affected models so all 9 share one 100-question set.
 
 ---
 
 ## Main results
 
-Mean ± SEM, judge `gpt-4o`. Indented rows are the `+ CoT FT` variant of the row above.
+Mean ± SEM. Indented rows are the `+ CoT FT` variant of the row above.
 
-| Model (Table 1) | Correctness<br>no context | Correctness<br>RAG (MMR k=15) | Completeness<br>no context | Completeness<br>RAG |
+### Primary judge: `gpt-4o`
+
+| Model (Table S1) | Corr. no context | Corr. RAG | Compl. no context | Compl. RAG |
 |---|---|---|---|---|
-| Llama-3-8B-Instruct | 7.15 ± 0.16 | 7.56 ± 0.15 | 8.68 ± 0.05 | 8.22 ± 0.09 |
-| &nbsp;&nbsp;+ CoT FT | 7.58 ± 0.13 | 7.73 ± 0.15 | 8.97 ± 0.02 | 8.80 ± 0.04 |
-| Broad zeolite abstracts DAPT | 6.96 ± 0.18 | 6.65 ± 0.18 | 8.54 ± 0.06 | 7.21 ± 0.15 |
-| &nbsp;&nbsp;+ CoT FT | 7.30 ± 0.17 | 7.76 ± 0.15 | 8.83 ± 0.07 | 8.70 ± 0.06 |
-| Synthesis abstracts DAPT | 7.05 ± 0.17 | 7.01 ± 0.16 | 8.56 ± 0.06 | 7.71 ± 0.13 |
-| &nbsp;&nbsp;+ CoT FT | 7.44 ± 0.14 | **7.83 ± 0.13** | 8.95 ± 0.03 | 8.77 ± 0.05 |
-| Synthesis abstracts DAPT (base LM) + CoT FT | 4.92 ± 0.33 | 7.51 ± 0.17 | 5.77 ± 0.39 | 8.30 ± 0.13 |
-| Synthesis full-paper DAPT | 6.74 ± 0.18 | 6.74 ± 0.17 | 8.45 ± 0.07 | 7.27 ± 0.15 |
-| &nbsp;&nbsp;+ CoT FT | 7.31 ± 0.16 | 7.79 ± 0.15 | 8.96 ± 0.03 | 8.70 ± 0.07 |
+| Llama-3-8B-Instruct | 7.41 ± 0.16 | 7.41 ± 0.18 | 8.63 ± 0.05 | 8.17 ± 0.10 |
+| &nbsp;&nbsp;+ CoT FT | 7.94 ± 0.13 | 8.08 ± 0.14 | 8.99 ± 0.01 | 8.91 ± 0.04 |
+| Broad zeolite abstracts DAPT | 7.26 ± 0.18 | 6.52 ± 0.20 | 8.56 ± 0.06 | 6.93 ± 0.16 |
+| &nbsp;&nbsp;+ CoT FT | 7.68 ± 0.17 | 8.04 ± 0.16 | 8.90 ± 0.05 | 8.85 ± 0.06 |
+| Synthesis abstracts DAPT | 7.33 ± 0.18 | 6.89 ± 0.18 | 8.65 ± 0.06 | 7.31 ± 0.14 |
+| &nbsp;&nbsp;+ CoT FT | 7.76 ± 0.14 | **8.21 ± 0.12** | 8.98 ± 0.02 | 8.92 ± 0.04 |
+| Llama-3-8B **base**, synth. abstracts DAPT + CoT FT | 4.97 ± 0.34 | 7.53 ± 0.19 | 5.73 ± 0.39 | 8.29 ± 0.15 |
+| Synthesis full-paper DAPT | 7.08 ± 0.19 | 6.48 ± 0.19 | 8.41 ± 0.09 | 7.03 ± 0.16 |
+| &nbsp;&nbsp;+ CoT FT | 7.83 ± 0.14 | 8.13 ± 0.14 | 9.00 ± 0.00 | 8.84 ± 0.05 |
 
-Best configuration under `gpt-4o`: **Synthesis abstracts DAPT + CoT FT under RAG, 7.83**,
-followed by full-paper DAPT + CoT (7.79) and broad abstracts DAPT + CoT (7.76). All three
-top slots are `DAPT + CoT` combinations, and all seven `+ CoT FT` rows outrank every
-non-CoT row under retrieval.
+> **Figures 1–2 vs this table — stock Llama-3-8B-Instruct.** The table reports the original run
+> (7.41 / 7.41 correctness), so that every model in it comes from one consistent generation pass.
+> **Figures 1 and 2 instead show the 23M replicate for that row** (7.26 no-context / 7.30 RAG,
+> `gpt-4o` correctness only), because the replicate is the more recent measurement of that model.
+> The two differ by ~0.15 points, which *is* the useful number — see
+> [Run-to-run stability](#run-to-run-stability-notebook-23m).
+
+### Robustness check: `gpt-4.1`
+
+Same data, second judge. Reported to show the conclusions do not depend on judge choice.
+
+
+| Model (Table S1) | Corr. no context | Corr. RAG | Compl. no context | Compl. RAG |
+|---|---|---|---|---|
+| Llama-3-8B-Instruct | 7.42 ± 0.15 | 7.56 ± 0.17 | 7.95 ± 0.09 | 7.58 ± 0.12 |
+| &nbsp;&nbsp;+ CoT FT | 8.34 ± 0.13 | **8.76 ± 0.14** | 9.06 ± 0.09 | 8.93 ± 0.09 |
+| Broad zeolite abstracts DAPT | 7.40 ± 0.16 | 6.51 ± 0.17 | 8.02 ± 0.10 | 6.54 ± 0.14 |
+| &nbsp;&nbsp;+ CoT FT | 8.16 ± 0.16 | 8.53 ± 0.15 | 8.97 ± 0.11 | 8.78 ± 0.10 |
+| Synthesis abstracts DAPT | 7.40 ± 0.16 | 6.96 ± 0.16 | 7.94 ± 0.10 | 6.83 ± 0.13 |
+| &nbsp;&nbsp;+ CoT FT | 8.44 ± 0.13 | 8.75 ± 0.13 | 9.22 ± 0.07 | 9.00 ± 0.08 |
+| Llama-3-8B **base**, synth. abstracts DAPT + CoT FT | 5.07 ± 0.35 | 7.87 ± 0.19 | 5.65 ± 0.38 | 8.10 ± 0.17 |
+| Synthesis full-paper DAPT | 7.29 ± 0.17 | 6.56 ± 0.15 | 7.81 ± 0.12 | 6.66 ± 0.14 |
+| &nbsp;&nbsp;+ CoT FT | 8.46 ± 0.14 | 8.57 ± 0.15 | 9.31 ± 0.08 | 8.83 ± 0.11 |
+
+Under retrieval, **every `+ CoT FT` row outranks every non-CoT row** — under the primary judge and confirmed by the robustness check.
 
 ---
 
 ## Finding 1 — CoT fine-tuning is the dominant effect, and retrieval amplifies it
 
-| Pair | Correctness<br>no context | Correctness<br>RAG | Completeness<br>no context | Completeness<br>RAG |
-|---|---|---|---|---|
-| Llama-3-8B-Instruct (no DAPT) | +0.41 \* | +0.17 n.s. | +0.29 \*\*\* | +0.63 \*\*\* |
-| Broad zeolite abstracts DAPT | +0.34 n.s. | **+1.14** \*\*\* | +0.29 \*\*\* | **+1.49** \*\*\* |
-| Synthesis abstracts DAPT | +0.39 \* | **+0.85** \*\*\* | +0.39 \*\*\* | **+1.07** \*\*\* |
-| Synthesis full-paper DAPT | +0.58 \*\* | **+1.01** \*\*\* | +0.52 \*\*\* | **+1.47** \*\*\* |
+All 16 pairwise comparisons (4 pairs × 2 conditions × 2 judges) are significant; 15 of 16 at
+p < 0.001. Paired per-question differences, Wilcoxon signed-rank:
 
-Pooled over the 4 pairs:
+**Primary judge `gpt-4o`**
+
+| Pair | Corr. no context | Corr. RAG | Compl. no context | Compl. RAG |
+|---|---|---|---|---|
+| Llama-3-8B-Instruct (no DAPT) | +0.53 \*\* | **+0.67** \*\*\* | +0.36 \*\*\* | **+0.74** \*\*\* |
+| Broad zeolite abstracts DAPT | +0.42 \* | **+1.52** \*\*\* | +0.34 \*\*\* | **+1.92** \*\*\* |
+| Synthesis abstracts DAPT | +0.43 \* | **+1.32** \*\*\* | +0.33 \*\*\* | **+1.61** \*\*\* |
+| Synthesis full-paper DAPT | +0.75 \*\*\* | **+1.65** \*\*\* | +0.59 \*\*\* | **+1.81** \*\*\* |
+
+**Robustness check `gpt-4.1`** — same direction, larger magnitudes throughout
+
+| Pair | Corr. no context | Corr. RAG | Compl. no context | Compl. RAG |
+|---|---|---|---|---|
+| Llama-3-8B-Instruct (no DAPT) | +0.92 \*\*\* | **+1.20** \*\*\* | +1.11 \*\*\* | **+1.35** \*\*\* |
+| Broad zeolite abstracts DAPT | +0.76 \*\*\* | **+2.02** \*\*\* | +0.95 \*\*\* | **+2.24** \*\*\* |
+| Synthesis abstracts DAPT | +1.04 \*\*\* | **+1.79** \*\*\* | +1.28 \*\*\* | **+2.17** \*\*\* |
+| Synthesis full-paper DAPT | +1.17 \*\*\* | **+2.01** \*\*\* | +1.50 \*\*\* | **+2.17** \*\*\* |
+
+Pooled over the 4 pairs, **primary judge `gpt-4o`**:
 
 | Metric | Condition | n | Mean Δ | Cohen's d | p |
 |---|---|---|---|---|---|
-| Correctness | no context | 387 | +0.43 | 0.23 | 7.6 × 10⁻⁶ |
-| Correctness | **RAG** | 368 | **+0.81** | **0.54** | 3.1 × 10⁻²⁰ |
-| Completeness | no context | 396 | +0.37 | 0.49 | 1.4 × 10⁻²⁰ |
-| Completeness | **RAG** | 376 | **+1.17** | **0.90** | 1.4 × 10⁻⁴² |
+| Correctness | no context | 400 | +0.53 | 0.29 | 2.1 × 10⁻⁸ |
+| Correctness | **RAG** | 400 | **+1.29** | **0.71** | 2.6 × 10⁻³² |
+| Completeness | no context | 400 | +0.41 | 0.54 | 1.4 × 10⁻²³ |
+| Completeness | **RAG** | 400 | **+1.52** | **1.05** | 8.5 × 10⁻⁵² |
 
-**The CoT advantage roughly doubles once retrieval is available** (d = 0.23 → 0.54
-correctness; 0.49 → 0.90 completeness). This is the one finding that replicates cleanly
-under both judges. The three **DAPT** pairs all gain strongly under RAG (+0.85 to +1.14);
-the **no-DAPT** pair does not (+0.17, n.s.) — see Finding 3.
+<sub>Pooling both judges (n = 800) gives +0.75 / **+1.52** correctness and +0.81 / **+1.75**
+completeness — same pattern, larger magnitudes, since `gpt-4.1` scores higher throughout.</sub>
 
-## Finding 2 — DAPT-only models fail to benefit from retrieval
+**The CoT advantage roughly doubles once retrieval is available** (d = 0.29 → 0.71 correctness;
+0.54 → 1.05 completeness under the primary judge). CoT is not simply adding knowledge — it is teaching the model to *use
+context it is given*. **Robust: replicates under the robustness-check judge on every pair and both metrics.**
 
-Change in correctness when MMR context is added (`gpt-4o`):
+## Finding 2 — Domain-adaptive pretraining alone makes models *worse* at using retrieval
 
-| Model | no context → RAG | Δ |
+Change in correctness when MMR context is added, with paired Wilcoxon signed-rank tests on
+matched questions:
+
+| Model | **`gpt-4o`** (primary) | `gpt-4.1` (check) |
 |---|---|---|
-| Llama-3-8B-Instruct (no DAPT) | 7.15 → 7.56 | **+0.41** |
-| Broad zeolite abstracts DAPT | 6.96 → 6.65 | **−0.31** |
-| Synthesis abstracts DAPT | 7.05 → 7.01 | **−0.04** |
-| Synthesis full-paper DAPT | 6.74 → 6.74 | **−0.00** |
-| *all four* **+ CoT FT** | | **+0.15 … +0.48** |
+| Llama-3-8B-Instruct (no DAPT) | +0.00 n.s. | +0.14 n.s. |
+| **Broad zeolite abstracts DAPT** | **−0.74** \*\* | **−0.89** \*\*\* |
+| **Synthesis abstracts DAPT** | **−0.44** \* | **−0.44** \* |
+| **Synthesis full-paper DAPT** | **−0.60** \* | **−0.73** \*\*\* |
+| Llama-3-8B-Instruct + CoT FT | +0.14 n.s. | +0.42 \* |
+| Broad abstracts DAPT + CoT FT | +0.36 n.s. | +0.37 n.s. |
+| Synthesis abstracts DAPT + CoT FT | +0.45 \* | +0.31 n.s. |
+| Synthesis full-paper DAPT + CoT FT | +0.30 n.s. | +0.11 n.s. |
+| Llama-3-8B base + CoT FT | **+2.62** \*\*\* | **+2.88** \*\*\* |
 
-Every **DAPT-only** checkpoint gains essentially nothing from retrieval (−0.31 to 0.00),
-while **every CoT variant** gains, and stock Llama-3-8B-Instruct — which had no DAPT —
-gains the most of any non-CoT model (+0.41). Completeness is starker: the DAPT-only models
-*drop* by 1.2–1.3 points when context is added.
+**All three DAPT-only checkpoints are significantly harmed by retrieval, under both judges** — the
+only significant *negative* effects in the table. No CoT variant is harmed. Completeness is starker
+still: the DAPT-only models drop 1.2–1.7 points when context is added.
 
-Reading: DAPT on raw zeolite text appears to erode instruction-following, so a long
-retrieved passage stops functioning as evidence. CoT fine-tuning restores it. **DAPT only
-pays off when paired with CoT FT.**
+> **On stock Llama-3-8B-Instruct.** Its +0.00 under `gpt-4o` is a coincidence of a balanced split,
+> not evidence that retrieval does nothing to individual answers: **81 of 100 per-question scores
+> change** (45 up, 36 down), and the score distribution shifts noticeably (RAG produces both more
+> 9s — 39 vs 29 — and more 3–5s). What is genuine is that the gains and losses cancel, so there is
+> **no significant net effect** (p = 0.96 under `gpt-4o`, p = 0.45 under `gpt-4.1`). Retrieval
+> reshuffles which questions it answers well without improving it overall.
 
-> **Judge-dependent.** Under `gpt-4.1` this effect is stronger and uniformly negative
-> (−0.44, −0.19, −0.22). Under `gpt-4o` two of the three are ≈ 0 rather than negative. The
-> safe claim is "**DAPT-only models fail to benefit from retrieval**"; the stronger claim
-> "retrieval actively *harms* them" holds only under `gpt-4.1`.
+Reading: DAPT on raw zeolite text strengthens the parametric prior while eroding
+instruction-following, so a long retrieved passage becomes a distraction rather than evidence. CoT
+fine-tuning restores the ability to condition on context. **DAPT and CoT FT are not independent
+contributions — DAPT only pays off when paired with CoT.**
 
-## Finding 3 — CoT and DAPT interact; neither dominates alone
+> This finding was *ambiguous* before the extraction fix (two of three models sat at ≈ 0 under
+> `gpt-4o`). On corrected data it is consistent and unambiguous across both judges — the bug had
+> been masking it.
 
-`Llama-3-8B-Instruct + CoT FT` (CoT on the stock model, no zeolite DAPT) reaches 7.73 under
-RAG — **4th** of nine, behind all three `DAPT + CoT` combinations (7.76–7.83). It is also
-the only pair whose CoT gain under RAG is not significant (+0.17, n.s.), because its base
-was already the strongest non-CoT model.
+## Finding 3 — The best single configuration is not resolved by this data
 
-So on this benchmark the best recipe is **DAPT *and* CoT together**: DAPT alone
-underperforms stock Llama, CoT alone lands mid-pack, and the combination takes the top
-three slots.
+| Judge | 1st | 2nd | 3rd |
+|---|---|---|---|
+| **`gpt-4o`** (primary) | Synth. abstracts DAPT + CoT (**8.21**) | Full-paper DAPT + CoT (8.13) | Instruct + CoT (8.08) |
+| `gpt-4.1` (check) | Instruct + CoT (8.76) | Synth. abstracts DAPT + CoT (8.75) | Full-paper DAPT + CoT (8.57) |
 
-> **Judge-dependent — this finding reverses.** Under `gpt-4.1`,
-> `Llama-3-8B-Instruct + CoT FT` is the **best model overall** (8.45, ahead of every
-> DAPT+CoT variant), supporting the opposite conclusion — that CoT alone suffices and the
-> domain corpora add nothing. The two judges disagree on the ordering of the top four
-> models, which are separated by only ~0.1 points. **Do not make a strong claim in either
-> direction from this data.**
+Under the primary judge the best configuration is **Synthesis abstracts DAPT + CoT FT (8.21)** —
+but the top three are separated by only **0.13 points**, and the robustness check reorders them
+(placing Instruct + CoT first, by 0.01 over Synth. abstracts DAPT + CoT). **The margin is inside
+judge-disagreement noise, so no claim about which single configuration is best is supported.** What *is* supported: all top slots are `+ CoT FT`
+variants, and CoT-on-stock-Llama is competitive with DAPT + CoT, so the domain corpora add no
+clear benefit over CoT alone on this benchmark.
 
 ## Finding 4 — Instruction tuning is a prerequisite
 
-The one variant built on the **base** (non-instruct) LM,
-`Synthesis abstracts DAPT (base LM) + CoT FT`, is far the weakest without context
-(**4.92** vs 7.30–7.58 for its instruct-based siblings) with 2× the standard error,
-indicating erratic output. Retrieval recovers it substantially (4.92 → 7.51, **+2.59**, the
-largest retrieval gain of any model) but it still trails. CoT fine-tuning does not
-substitute for instruction tuning. **Replicates under both judges.**
+`Llama-3-8B base, synthesis abstracts DAPT + CoT FT` — the only variant built on the **base**
+rather than **Instruct** checkpoint — is by far the weakest without context (**4.97 / 5.07** vs
+7.68–7.94 and 8.16–8.46 for its Instruct-based siblings), with 2× the standard error. Retrieval
+recovers it substantially (**+2.56 / +2.80**, the largest retrieval gain of any model) but it still
+trails. CoT fine-tuning does not substitute for instruction tuning. **Robust under both judges.**
 
 ---
 
-## Judge sensitivity — read before citing Findings 2 and 3
+## Run-to-run stability (notebook 23M)
 
-Two independent judges scored every response with byte-identical prompts. Agreement is
-high in aggregate but **not high enough to resolve the top of the leaderboard**.
+Generation uses `temperature=0.1, do_sample=True`, so the pipeline is stochastic. **23M** re-ran
+stock `Llama-3-8B-Instruct` on the identical 100 questions, with the fixed extractor, and re-judged
+correctness with `gpt-4o`:
+
+| | no context | RAG (MMR k=15) | gap |
+|---|---|---|---|
+| Original run | 7.41 | 7.41 | **+0.00** |
+| 23M replicate | 7.26 | 7.30 | **+0.04** |
+
+Two things follow:
+
+1. **The null result reproduces.** The no-context vs RAG gap is +0.00 in one run and +0.04 in the
+   other — retrieval has no net effect on stock Llama-3-8B-Instruct under either.
+2. **Single-run noise is ~0.15 points.** Both condition means moved by roughly that much between
+   two identical runs. **Any reported difference smaller than ~0.15 points should not be
+   interpreted** — which is precisely the situation in
+   [Finding 3](#finding-3--the-best-single-configuration-is-not-resolved-by-this-data), where the
+   top three configurations are separated by 0.13.
+
+This is a single-model estimate; a full multi-model replication would tighten it.
+
+## Judge reliability — `gpt-4.1` as robustness check
 
 | Metric | Pearson r (per question) | Agree within ±1 | n |
 |---|---|---|---|
-| Correctness | 0.880 | 92% | 1,734 |
-| Completeness | 0.830 | 84% | 1,749 |
+| Correctness | **0.913** | 95% | 1,790 |
+| Completeness | 0.874 | 92% | 1,790 |
 
-Model-level correlation on correctness is **r = 0.961**, and `gpt-4.1` scores systematically
-~0.1–0.7 points higher than `gpt-4o` across the board. What survives and what does not:
+Model-level correlation on correctness is **r = 0.983**. Agreement improved measurably after the
+extraction fix (correctness r 0.880 → 0.913) — unsurprising, since the judges now read a ~600
+character answer rather than a 15,000-character blob.
 
-| Finding | `gpt-4.1` | `gpt-4o` | Verdict |
-|---|---|---|---|
-| 1 — CoT helps, more so with RAG | d 0.36 → 0.73 | d 0.23 → 0.54 | **Robust** |
-| 2 — DAPT-only + retrieval | −0.44, −0.19, −0.22 | −0.31, −0.04, −0.00 | **Weakened** — "no benefit" is safe, "actively harmful" is not |
-| 3 — best configuration | CoT-only wins (8.45) | DAPT+CoT wins (7.83) | **Reverses** — do not claim either |
-| 4 — base LM is weakest | 5.09 | 4.92 | **Robust** |
+`gpt-4.1` scores systematically **higher** than the primary judge `gpt-4o` (visible as points above
+the y = x line in Figure 5), so absolute values in the primary tables are the more conservative of
+the two. Findings 1, 2 and 4 replicate under the check; Finding 3 does not, and is reported as
+unresolved.
 
-The top four models are separated by ~0.1 points, well inside the disagreement between
-judges. Any claim about *which* configuration is best is not supported; claims about
-*CoT vs no-CoT* and *instruct vs base LM* are.
-
-## Supplementary — GPT-5.2 reference point (SI only, not a main-paper result)
-
-> **Framing.** This comparison belongs in the **Supplementary Information, not the main
-> paper.** The objective of this work is *not* to beat a frontier closed model. It is to
-> characterise how domain-adaptive pretraining, chain-of-thought fine-tuning and retrieval
-> interact in an **8B open-weight model that can be run locally on a single GPU** over a
-> private literature corpus. GPT-5.2 is reported only to locate the benchmark on an
-> absolute scale — i.e. to show these questions are hard but tractable — not as a
-> competitive baseline. Cost, latency, data residency and reproducibility all differ by
-> orders of magnitude between the two settings, so a head-to-head ranking would be a
-> category error.
-
-Notebook **30f** generated GPT-5.2 answers to the same 100 questions with the **verbatim
-no-context prompt from 23j**, judged with the **same correctness prompt** as everything
-else. GPT-5.2 answers from parametric knowledge only — it was given no retrieval.
-
-| | judge `gpt-4o` | judge `gpt-4.1` |
-|---|---|---|
-| **GPT-5.2 (no context)** | **9.16** | **9.91** |
-| Best open-weight, no context | 7.58 | 7.94 |
-| Best open-weight, with RAG | 7.83 | 8.44 |
-
-GPT-5.2 outscores **all 9 open-weight variants in both conditions**, every comparison at
-p < 0.001. Under `gpt-4o` it does not lose a single question to any model (e.g. 77 wins /
-0 losses / 20 ties against the best no-context CoT model; 71/0/29 against the best
-RAG configuration). Margins are +1.33 to +2.52 against CoT variants and +2.1 to +2.5
-against DAPT-only checkpoints.
-
-**Two caveats that matter more than the ranking:**
-
-1. **The benchmark is near-saturated for frontier models.** 9.16–9.91 out of 10 with
-   essentially no losses means this question set no longer discriminates at that capability
-   level. It discriminates well among 8B variants (4.92–7.83), which is what it was built
-   for, but it cannot rank frontier models and should not be used to.
-2. **Possible circularity.** The questions were LLM-generated from paper abstracts, the
-   gold answers are the correct MCQ options from that same generation step, and the judges
-   are OpenAI models. A frontier OpenAI model answering OpenAI-written questions graded by
-   OpenAI judges may benefit from shared conventions in phrasing and emphasis that an 8B
-   Llama derivative does not share. The open-weight *relative* comparisons are unaffected —
-   every model faces the identical setup — but the absolute GPT-5.2 margin should be read
-   with this in mind.
-
-Artefacts: `results_gpt52_nocontext_*.json`, `judge_results_gpt52_*.json`,
-`gpt52_vs_local_*.csv`, `figures_30e/fig6_gpt52_vs_local_*.svg`.
+**Why `gpt-4o` is primary:** it is the more conservative scorer, and it is the judge used for the
+figures in `30e` (`PRIMARY_JUDGE = 'gpt-4o'`). There is no principled reason to treat either model
+as ground truth, which is why both are reported rather than one being justified over the other.
 
 ## Why only two metrics are reported
 
-All four judge tasks were computed; two are excluded from the figures.
+**Context relevance** scores the *query ↔ context* match. Every model receives identical retrieved
+context from one shared MMR retriever, so the model never enters the computation — across all 9
+models it varied by **0.098 points**. A useful retriever sanity check (~7.8/10); useless for
+comparing models.
 
-**Context relevance** scores the *query ↔ context* match. Every model receives identical
-retrieved context from one shared MMR retriever, so the model never enters the computation.
-Across all 9 models it varies by **0.098 points** — constant by construction. A useful
-retriever sanity check (~7.8/10); useless for comparing models.
+**Faithfulness** had the weakest inter-judge agreement of the four tasks (r = 0.656), spanned only
+1.08 points across all models under RAG, and correlated r = 0.62 with correctness. Both were
+computed and remain in the source JSON.
 
-**Faithfulness** is the least trustworthy of the four: inter-judge agreement **r = 0.656**
-vs 0.880 for correctness; under RAG it spans only 1.08 points across all 9 models; and at
-**r = 0.62** with correctness it is largely redundant. Its one substantive result — CoT
-variants scoring ~0.9 lower without context, suggesting ungrounded reasoning chains
-confabulate — is interesting but rests on the weakest instrument and should be treated as a
-hypothesis for follow-up.
+## Data-quality notes for the SI
+
+**1. `Llama-3-8B base + CoT FT` scores over 91/100 questions under RAG.** Nine generations
+(indices 3, 25, 28, 35, 42, 43, 58, 77, 82) produced **no answer at all** — the raw output ends
+exactly at the prompt's `Answer:` token with nothing following. Diagnosis: as a non-instruction-tuned
+base LM, it treats the prompt as text to continue rather than an instruction to follow, and under
+the long RAG context it exhausted its 400-token budget continuing the passage — in several cases
+generating further *question* text — before reaching an answer. Evidence this is model behaviour
+and not a pipeline defect: the three Instruct-based CoT models have **zero** invalid records on the
+same questions with the same contexts, and the same model has only 1 invalid without context
+(where the prompt is ~600 chars instead of ~15,000). Its valid answers are also the longest of any
+model (960 chars mean vs 717 for its Instruct sibling), consistent with a model that does not know
+when to stop. Its RAG means are therefore over a 91-question subset; all paired comparisons use
+matched questions and are unaffected.
+
+**2. `gpt-4o` saturates on completeness.** For `Synthesis full-paper DAPT + CoT FT` without
+context, `gpt-4o` assigned **exactly 9 to all 100 questions** (SEM 0.00), while `gpt-4.1` spread
+across 6–10 on the same answers ({6:2, 7:2, 8:2, 9:51, 10:43}). That cell carries no variance and
+cannot support a comparison. Completeness generally shows less spread under `gpt-4o` — a reason to
+lead with correctness, which discriminates under both judges.
+
+## Result completeness
+
+Every reported cell is **100/100 questions** for both judges and both metrics, with one documented
+exception:
+
+| Model | no context | RAG |
+|---|---|---|
+| Llama-3-8B **base**, synthesis abstracts DAPT + CoT FT | 99/100 | **91/100** |
+| *all other 8 open-weight models* | 100/100 | 100/100 |
+| GPT-5.2 (no-context only) | 100/100 | — |
+
+The shortfall is a genuine property of that model, not missing data — see the
+[SI data-quality notes](#data-quality-notes-for-the-si). Both judges fail on exactly the same
+questions, and all paired comparisons use matched questions, so the shortfall does not bias any
+delta reported here.
 
 ## Limitations
 
-- **GPT-5.2 is reported in the SI only**, by design — see
-  [Supplementary](#supplementary--gpt-52-reference-point-si-only-not-a-main-paper-result).
-  It is a scale reference, not a competitive baseline, and the benchmark is saturated at
-  that capability level.
-- **The primary-judge choice changes conclusions.** See
-  [Judge sensitivity](#judge-sensitivity--read-before-citing-findings-2-and-3). Report both
-  judges for any claim about model ordering.
-- **Correctness and completeness correlate at r = 0.78** — not independent evidence.
-  Completeness partly rewards thoroughness, which CoT models produce by construction, so
-  part of the completeness gain reflects verbosity rather than better science.
-- **Uneven judge-score coverage.** `Llama-3-8B-Instruct + CoT FT` and
-  `Synthesis full-paper DAPT + CoT FT` returned usable correctness scores on 84–85% of RAG
-  judge calls vs ~99% elsewhere (likely truncated JSON at `max_tokens=200`). Means use
-  valid scores only and paired tests use matched questions, so comparisons hold — but this
-  should be resolved before publication.
-- **One retriever, one k** (MMR, k = 15) and **one question set** (100 items, no
-  cross-dataset replication).
+- **Correctness and completeness correlate at r ≈ 0.78** — not independent evidence. Completeness
+  partly rewards thoroughness, which CoT models produce by construction.
+- **Finding 3 is unresolved** — under the primary judge the best configuration is Synthesis
+  abstracts DAPT + CoT FT, but the top three sit within judge-disagreement noise and the check
+  judge reorders them.
+- **One retriever, one k** (MMR, k = 15) and **one question set** (100 items, no cross-dataset
+  replication).
+- **The question set is LLM-generated** from paper abstracts, with the correct MCQ option as the
+  gold answer; judges are OpenAI models. Relative comparisons among open-weight models are
+  unaffected (identical setup), but see the SI caveat on GPT-5.2.
+
+## Supplementary — GPT-5.2 reference point (SI only, not a main-paper result)
+
+> **Framing.** This belongs in the **SI, not the main paper.** The objective of this work is *not*
+> to beat a frontier closed model, but to characterise how DAPT, CoT FT and retrieval interact in
+> an **8B open-weight model runnable locally on a single GPU** over a private literature corpus.
+> GPT-5.2 is reported only to locate the benchmark on an absolute scale. Cost, latency, data
+> residency and reproducibility differ by orders of magnitude, so a head-to-head ranking would be a
+> category error.
+
+Notebook **30f** generated GPT-5.2 answers with the verbatim no-context prompt from 23j; **30g**
+judged them under the identical clean protocol. GPT-5.2 was given **no retrieval**.
+
+| | **`gpt-4o`** (primary) | `gpt-4.1` (check) |
+|---|---|---|
+| **GPT-5.2 correctness (no context)** | **9.14** | **9.91** |
+| **GPT-5.2 completeness (no context)** | **9.03** | **10.00** |
+| Best open-weight, no context | 7.94 | 8.46 |
+| Best open-weight, with RAG | 8.21 | 8.76 |
+
+**Two caveats that matter more than the ranking:**
+
+1. **The benchmark is saturated at that capability level.** 9.14–9.91 out of 10, and a perfect
+   10.00 completeness under `gpt-4.1`, means this question set no longer discriminates among
+   frontier models. It discriminates well among 8B variants (4.97–8.21), which is what it was built
+   for.
+2. **Possible circularity.** The questions were LLM-generated, the gold answers come from that same
+   generation step, and both judges are OpenAI models. A frontier OpenAI model answering
+   OpenAI-written questions graded by OpenAI judges may benefit from shared conventions an 8B Llama
+   derivative does not share.
 
 ## Pending
 
 | Item | Status |
 |---|---|
-| GPT-5.2 no-context generation + judging | **Done** (30f) — 9.16 / 9.91 correctness; SI only |
-| Re-judge the 2 models with 84–85% coverage | Optional; would tighten two rows |
-| Third judge to break the Finding-3 tie | Recommended if the "best configuration" claim matters |
+| Extraction fix + re-judge (30g) | **Done** — both judges, all 9 models |
+| Q67 question-set parity (23L) | **Done** — all 9 models on one 100-question set |
+| GPT-5.2 (SI) | **Done** — 30f generation, 30g clean judging |
+| Third judge to resolve Finding 3 | Recommended if the "best configuration" claim matters |
 
 ## Corpus Analysis & Data Preparation
 
