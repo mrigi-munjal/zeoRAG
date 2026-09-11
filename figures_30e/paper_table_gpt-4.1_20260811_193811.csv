@@ -1,0 +1,10 @@
+Model (Table 1),DAPT corpus,CoT FT,NoCtx corre,NoCtx compl,RAG corre,RAG compl
+Llama-3-8B-Instruct,None,No,7.42 ± 0.15,7.95 ± 0.09,7.56 ± 0.17,7.58 ± 0.12
+Llama-3-8B-Instruct + CoT FT,None,Yes,8.34 ± 0.13,9.06 ± 0.09,8.76 ± 0.14,8.93 ± 0.09
+"Llama-3-8B-Instruct, broad zeolite abstracts DAPT",Broad zeolite abstracts,No,7.40 ± 0.16,8.02 ± 0.10,6.51 ± 0.17,6.54 ± 0.14
+"Llama-3-8B-Instruct, broad zeolite abstracts DAPT + CoT FT",Broad zeolite abstracts,Yes,8.16 ± 0.16,8.97 ± 0.11,8.53 ± 0.15,8.78 ± 0.10
+"Llama-3-8B-Instruct, synthesis abstracts DAPT",Synthesis abstracts,No,7.40 ± 0.16,7.94 ± 0.10,6.96 ± 0.16,6.83 ± 0.13
+"Llama-3-8B-Instruct, synthesis abstracts DAPT + CoT FT",Synthesis abstracts,Yes,8.44 ± 0.13,9.22 ± 0.07,8.75 ± 0.13,9.00 ± 0.08
+"Llama-3-8B base, synthesis abstracts DAPT + CoT FT",Synthesis abstracts,Yes,5.07 ± 0.35,5.65 ± 0.38,7.87 ± 0.19,8.10 ± 0.17
+"Llama-3-8B-Instruct, synthesis full-paper DAPT",Synthesis full papers,No,7.29 ± 0.17,7.81 ± 0.12,6.56 ± 0.15,6.66 ± 0.14
+"Llama-3-8B-Instruct, synthesis full-paper DAPT + CoT FT",Synthesis full papers,Yes,8.46 ± 0.14,9.31 ± 0.08,8.57 ± 0.15,8.83 ± 0.11
