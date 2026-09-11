@@ -1,0 +1,94 @@
+[19:36:51] Expected questions per model: 100
+[19:36:51] Progress log: results_23k_progress_20260728_193651.log
+[19:36:51] ✓ Loaded existing checkpoint — 7 models already complete overall
+[19:36:51]     ✓ Llama-3-8B-Instruct
+[19:36:51]     ✓ DAPT_LR1e5
+[19:36:51]     ✓ synv2V2_step80
+[19:36:51]     ✓ synv2V2_final
+[19:36:51]     ✓ synv2_base_step80
+[19:36:51]     ✓ synv2_base_final
+[19:36:51]     ✓ fullpaper_120M_LR1e5
+[19:36:51] 
+[19:36:51] ################################################################################
+[19:36:51] [1/7] MODEL: DAPT_LR1e5_COT  (elapsed so far: 0.0 min)
+[19:36:51] ################################################################################
+[19:37:13] --- [DAPT_LR1e5_COT] no_context ---
+[19:48:19] ✓ no_context: 100/100 valid  (11.1 min)
+[19:48:19]    💾 checkpoint saved [DAPT_LR1e5_COT:no_context]: results_23k_complete_20260728_193651.json (32772 KB)  + results_23j_checkpoint.json
+[19:48:19] --- [DAPT_LR1e5_COT] mmr (k=15) ---
+[20:01:40] ✓ mmr: 100/100 valid  (13.3 min)
+[20:01:40]    💾 checkpoint saved [DAPT_LR1e5_COT:mmr]: results_23k_complete_20260728_193651.json (37200 KB)  + results_23j_checkpoint.json
+[20:01:47] ⏱  DAPT_LR1e5_COT done in 24.9 min  (total: 24.9 min)
+[20:01:47] 
+[20:01:47] ################################################################################
+[20:01:47] [2/7] MODEL: synv2V2_step80_COT  (elapsed so far: 24.9 min)
+[20:01:47] ################################################################################
+[20:02:05] --- [synv2V2_step80_COT] no_context ---
+[20:13:21] ✓ no_context: 100/100 valid  (11.3 min)
+[20:13:21]    💾 checkpoint saved [synv2V2_step80_COT:no_context]: results_23k_complete_20260728_193651.json (37543 KB)  + results_23j_checkpoint.json
+[20:13:21] --- [synv2V2_step80_COT] mmr (k=15) ---
+[20:27:40] ✓ mmr: 100/100 valid  (14.3 min)
+[20:27:41]    💾 checkpoint saved [synv2V2_step80_COT:mmr]: results_23k_complete_20260728_193651.json (41989 KB)  + results_23j_checkpoint.json
+[20:27:47] ⏱  synv2V2_step80_COT done in 26.0 min  (total: 50.9 min)
+[20:27:47] 
+[20:27:47] ################################################################################
+[20:27:47] [3/7] MODEL: synv2V2_final_COT  (elapsed so far: 50.9 min)
+[20:27:47] ################################################################################
+[20:28:06] --- [synv2V2_final_COT] no_context ---
+[20:38:59] ✓ no_context: 100/100 valid  (10.9 min)
+[20:38:59]    💾 checkpoint saved [synv2V2_final_COT:no_context]: results_23k_complete_20260728_193651.json (42324 KB)  + results_23j_checkpoint.json
+[20:38:59] --- [synv2V2_final_COT] mmr (k=15) ---
+[20:52:47] ✓ mmr: 100/100 valid  (13.8 min)
+[20:52:48]    💾 checkpoint saved [synv2V2_final_COT:mmr]: results_23k_complete_20260728_193651.json (46763 KB)  + results_23j_checkpoint.json
+[20:52:54] ⏱  synv2V2_final_COT done in 25.1 min  (total: 76.1 min)
+[20:52:54] 
+[20:52:54] ################################################################################
+[20:52:54] [4/7] MODEL: synv2_base_step80_COT  (elapsed so far: 76.1 min)
+[20:52:54] ################################################################################
+[20:53:14] --- [synv2_base_step80_COT] no_context ---
+[21:05:42] ✓ no_context: 100/100 valid  (12.5 min)
+[21:05:43]    💾 checkpoint saved [synv2_base_step80_COT:no_context]: results_23k_complete_20260728_193651.json (47114 KB)  + results_23j_checkpoint.json
+[21:05:43] --- [synv2_base_step80_COT] mmr (k=15) ---
+[21:22:03] ✓ mmr: 100/100 valid  (16.3 min)
+[21:22:04]    💾 checkpoint saved [synv2_base_step80_COT:mmr]: results_23k_complete_20260728_193651.json (51589 KB)  + results_23j_checkpoint.json
+[21:22:10] ⏱  synv2_base_step80_COT done in 29.3 min  (total: 105.3 min)
+[21:22:10] 
+[21:22:10] ################################################################################
+[21:22:10] [5/7] MODEL: synv2_base_final_COT  (elapsed so far: 105.3 min)
+[21:22:10] ################################################################################
+[21:22:28] --- [synv2_base_final_COT] no_context ---
+[21:33:20] ✓ no_context: 100/100 valid  (10.9 min)
+[21:33:20]    💾 checkpoint saved [synv2_base_final_COT:no_context]: results_23k_complete_20260728_193651.json (51911 KB)  + results_23j_checkpoint.json
+[21:33:20] --- [synv2_base_final_COT] mmr (k=15) ---
+[21:47:23] ✓ mmr: 100/100 valid  (14.0 min)
+[21:47:23]    💾 checkpoint saved [synv2_base_final_COT:mmr]: results_23k_complete_20260728_193651.json (56347 KB)  + results_23j_checkpoint.json
+[21:47:29] ⏱  synv2_base_final_COT done in 25.3 min  (total: 130.6 min)
+[21:47:29] 
+[21:47:29] ################################################################################
+[21:47:29] [6/7] MODEL: fullpaper_120M_COT  (elapsed so far: 130.6 min)
+[21:47:29] ################################################################################
+[21:47:48] --- [fullpaper_120M_COT] no_context ---
+[21:58:53] ✓ no_context: 100/100 valid  (11.1 min)
+[21:58:53]    💾 checkpoint saved [fullpaper_120M_COT:no_context]: results_23k_complete_20260728_193651.json (56689 KB)  + results_23j_checkpoint.json
+[21:58:53] --- [fullpaper_120M_COT] mmr (k=15) ---
+[22:14:09] ✓ mmr: 100/100 valid  (15.3 min)
+[22:14:10]    💾 checkpoint saved [fullpaper_120M_COT:mmr]: results_23k_complete_20260728_193651.json (61147 KB)  + results_23j_checkpoint.json
+[22:14:16] ⏱  fullpaper_120M_COT done in 26.8 min  (total: 157.4 min)
+[22:14:16] 
+[22:14:16] ################################################################################
+[22:14:16] [7/7] MODEL: base_llama_COT  (elapsed so far: 157.4 min)
+[22:14:16] ################################################################################
+[22:14:28] --- [base_llama_COT] no_context ---
+[22:25:19] ✓ no_context: 100/100 valid  (10.9 min)
+[22:25:20]    💾 checkpoint saved [base_llama_COT:no_context]: results_23k_complete_20260728_193651.json (61487 KB)  + results_23j_checkpoint.json
+[22:25:20] --- [base_llama_COT] mmr (k=15) ---
+[22:39:02] ✓ mmr: 100/100 valid  (13.7 min)
+[22:39:03]    💾 checkpoint saved [base_llama_COT:mmr]: results_23k_complete_20260728_193651.json (65928 KB)  + results_23j_checkpoint.json
+[22:39:09] ⏱  base_llama_COT done in 24.9 min  (total: 182.3 min)
+[22:39:09] 
+[22:39:09] ================================================================================
+[22:39:09] 23k recovery complete. Total wall-clock: 182.3 min
+[22:39:09] Merged checkpoint: results_23j_checkpoint.json
+[22:39:09] This-run snapshot: results_23k_complete_20260728_193651.json
+[22:39:09] Progress log:      results_23k_progress_20260728_193651.log
+[22:39:09] ================================================================================

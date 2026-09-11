@@ -1,0 +1,136 @@
+[20:26:47] Expected questions per model: 100
+[20:26:47] Progress log: results_23j_progress_20260720_202647.log
+[20:26:47] ✓ Resuming from results_23j_checkpoint.json — 0 models already complete:
+[20:26:47] ⚠ 1 models will be re-evaluated (stale, partial, or prior load_error):
+[20:26:47]     ↻ Llama-3-8B-Instruct
+[20:26:47] 
+[20:26:47] ################################################################################
+[20:26:47] [1/14] MODEL: Llama-3-8B-Instruct  (elapsed so far: 0.0 min)
+[20:26:47] ################################################################################
+[20:26:58] --- [Llama-3-8B-Instruct] no_context ---
+[20:34:12] ✓ no_context: 100/100 valid  (7.2 min)
+[20:34:12]    💾 checkpoint saved [Llama-3-8B-Instruct:no_context]: results_23j_complete_20260720_202647.json (302 KB)
+[20:34:12] --- [Llama-3-8B-Instruct] mmr (k=15) ---
+[20:44:18] ✓ mmr: 99/100 valid  (10.1 min)
+[20:44:18]    💾 checkpoint saved [Llama-3-8B-Instruct:mmr]: results_23j_complete_20260720_202647.json (4653 KB)
+[20:44:24] ⏱  Llama-3-8B-Instruct done in 17.6 min  (total: 17.6 min)
+[20:44:24] 
+[20:44:24] ################################################################################
+[20:44:24] [2/14] MODEL: DAPT_LR1e5  (elapsed so far: 17.6 min)
+[20:44:24] ################################################################################
+[20:44:40] --- [DAPT_LR1e5] no_context ---
+[20:51:00] ✓ no_context: 100/100 valid  (6.3 min)
+[20:51:00]    💾 checkpoint saved [DAPT_LR1e5:no_context]: results_23j_complete_20260720_202647.json (4935 KB)
+[20:51:00] --- [DAPT_LR1e5] mmr (k=15) ---
+[20:59:01] ✓ mmr: 99/100 valid  (8.0 min)
+[20:59:01]    💾 checkpoint saved [DAPT_LR1e5:mmr]: results_23j_complete_20260720_202647.json (9256 KB)
+[20:59:08] ⏱  DAPT_LR1e5 done in 14.7 min  (total: 32.3 min)
+[20:59:08] 
+[20:59:08] ################################################################################
+[20:59:08] [3/14] MODEL: DAPT_LR1e5_COT  (elapsed so far: 32.3 min)
+[20:59:08] ################################################################################
+[20:59:08] ✗ Failed to load DAPT_LR1e5_COT: We couldn't connect to 'https://huggingface.co' to load this file, couldn't find it in the cached files and it looks like aleynabeste/AllClassesAbstracts70Mmodel_LR1e5_COT is not the path to a directo
+[20:59:08]    💾 checkpoint saved [load_fail:DAPT_LR1e5_COT]: results_23j_complete_20260720_202647.json (9256 KB)
+[20:59:08] 
+[20:59:08] ################################################################################
+[20:59:08] [4/14] MODEL: synv2V2_step80  (elapsed so far: 32.3 min)
+[20:59:08] ################################################################################
+[20:59:23] --- [synv2V2_step80] no_context ---
+[21:06:05] ✓ no_context: 100/100 valid  (6.7 min)
+[21:06:05]    💾 checkpoint saved [synv2V2_step80:no_context]: results_23j_complete_20260720_202647.json (9545 KB)
+[21:06:05] --- [synv2V2_step80] mmr (k=15) ---
+[21:14:32] ✓ mmr: 99/100 valid  (8.5 min)
+[21:14:32]    💾 checkpoint saved [synv2V2_step80:mmr]: results_23j_complete_20260720_202647.json (13872 KB)
+[21:14:38] ⏱  synv2V2_step80 done in 15.5 min  (total: 47.9 min)
+[21:14:38] 
+[21:14:38] ################################################################################
+[21:14:38] [5/14] MODEL: synv2V2_step80_COT  (elapsed so far: 47.9 min)
+[21:14:38] ################################################################################
+[21:14:38] ✗ Failed to load synv2V2_step80_COT: We couldn't connect to 'https://huggingface.co' to load this file, couldn't find it in the cached files and it looks like aleynabeste/model_LR1e5v3_synv2V2_step80_COT_FT is not the path to a directory
+[21:14:38]    💾 checkpoint saved [load_fail:synv2V2_step80_COT]: results_23j_complete_20260720_202647.json (13872 KB)
+[21:14:38] 
+[21:14:38] ################################################################################
+[21:14:38] [6/14] MODEL: synv2V2_final  (elapsed so far: 47.9 min)
+[21:14:38] ################################################################################
+[21:14:54] --- [synv2V2_final] no_context ---
+[21:21:17] ✓ no_context: 100/100 valid  (6.4 min)
+[21:21:17]    💾 checkpoint saved [synv2V2_final:no_context]: results_23j_complete_20260720_202647.json (14156 KB)
+[21:21:17] --- [synv2V2_final] mmr (k=15) ---
+[21:29:22] ✓ mmr: 99/100 valid  (8.1 min)
+[21:29:22]    💾 checkpoint saved [synv2V2_final:mmr]: results_23j_complete_20260720_202647.json (18478 KB)
+[21:29:28] ⏱  synv2V2_final done in 14.8 min  (total: 62.7 min)
+[21:29:28] 
+[21:29:28] ################################################################################
+[21:29:28] [7/14] MODEL: synv2V2_final_COT  (elapsed so far: 62.7 min)
+[21:29:28] ################################################################################
+[21:29:28] ✗ Failed to load synv2V2_final_COT: We couldn't connect to 'https://huggingface.co' to load this file, couldn't find it in the cached files and it looks like aleynabeste/model_LR1e5v3_synv2V2_final_COT_FT is not the path to a directory 
+[21:29:28]    💾 checkpoint saved [load_fail:synv2V2_final_COT]: results_23j_complete_20260720_202647.json (18478 KB)
+[21:29:28] 
+[21:29:28] ################################################################################
+[21:29:28] [8/14] MODEL: synv2_base_step80  (elapsed so far: 62.7 min)
+[21:29:28] ################################################################################
+[21:29:44] --- [synv2_base_step80] no_context ---
+[21:37:44] ✓ no_context: 100/100 valid  (8.0 min)
+[21:37:44]    💾 checkpoint saved [synv2_base_step80:no_context]: results_23j_complete_20260720_202647.json (18789 KB)
+[21:37:44] --- [synv2_base_step80] mmr (k=15) ---
+[21:47:59] ✓ mmr: 99/100 valid  (10.2 min)
+[21:47:59]    💾 checkpoint saved [synv2_base_step80:mmr]: results_23j_complete_20260720_202647.json (23145 KB)
+[21:48:05] ⏱  synv2_base_step80 done in 18.6 min  (total: 81.3 min)
+[21:48:05] 
+[21:48:05] ################################################################################
+[21:48:05] [9/14] MODEL: synv2_base_step80_COT  (elapsed so far: 81.3 min)
+[21:48:05] ################################################################################
+[21:48:05] ✗ Failed to load synv2_base_step80_COT: We couldn't connect to 'https://huggingface.co' to load this file, couldn't find it in the cached files and it looks like aleynabeste/model_LR1e5v3_synv2_base_step80_COT_FT is not the path to a direct
+[21:48:06]    💾 checkpoint saved [load_fail:synv2_base_step80_COT]: results_23j_complete_20260720_202647.json (23146 KB)
+[21:48:06] 
+[21:48:06] ################################################################################
+[21:48:06] [10/14] MODEL: synv2_base_final  (elapsed so far: 81.3 min)
+[21:48:06] ################################################################################
+[21:48:21] --- [synv2_base_final] no_context ---
+[21:56:44] ✓ no_context: 100/100 valid  (8.4 min)
+[21:56:44]    💾 checkpoint saved [synv2_base_final:no_context]: results_23j_complete_20260720_202647.json (23466 KB)
+[21:56:44] --- [synv2_base_final] mmr (k=15) ---
+[22:08:09] ✓ mmr: 99/100 valid  (11.4 min)
+[22:08:09]    💾 checkpoint saved [synv2_base_final:mmr]: results_23j_complete_20260720_202647.json (27835 KB)
+[22:08:15] ⏱  synv2_base_final done in 20.2 min  (total: 101.5 min)
+[22:08:15] 
+[22:08:15] ################################################################################
+[22:08:15] [11/14] MODEL: synv2_base_final_COT  (elapsed so far: 101.5 min)
+[22:08:15] ################################################################################
+[22:08:15] ✗ Failed to load synv2_base_final_COT: We couldn't connect to 'https://huggingface.co' to load this file, couldn't find it in the cached files and it looks like aleynabeste/model_LR1e5v3_synv2_base_final_COT_FT is not the path to a directo
+[22:08:16]    💾 checkpoint saved [load_fail:synv2_base_final_COT]: results_23j_complete_20260720_202647.json (27836 KB)
+[22:08:16] 
+[22:08:16] ################################################################################
+[22:08:16] [12/14] MODEL: fullpaper_120M_LR1e5  (elapsed so far: 101.5 min)
+[22:08:16] ################################################################################
+[22:08:31] --- [fullpaper_120M_LR1e5] no_context ---
+[22:14:54] ✓ no_context: 100/100 valid  (6.4 min)
+[22:14:54]    💾 checkpoint saved [fullpaper_120M_LR1e5:no_context]: results_23j_complete_20260720_202647.json (28113 KB)
+[22:14:54] --- [fullpaper_120M_LR1e5] mmr (k=15) ---
+[22:23:17] ✓ mmr: 99/100 valid  (8.4 min)
+[22:23:18]    💾 checkpoint saved [fullpaper_120M_LR1e5:mmr]: results_23j_complete_20260720_202647.json (32438 KB)
+[22:23:24] ⏱  fullpaper_120M_LR1e5 done in 15.1 min  (total: 116.6 min)
+[22:23:24] 
+[22:23:24] ################################################################################
+[22:23:24] [13/14] MODEL: fullpaper_120M_COT  (elapsed so far: 116.6 min)
+[22:23:24] ################################################################################
+[22:23:24] ✗ Failed to load fullpaper_120M_COT: We couldn't connect to 'https://huggingface.co' to load this file, couldn't find it in the cached files and it looks like aleynabeste/model_LR1e5_fullpaper_longer_120M_COT_FT is not the path to a dire
+[22:23:24]    💾 checkpoint saved [load_fail:fullpaper_120M_COT]: results_23j_complete_20260720_202647.json (32438 KB)
+[22:23:24] 
+[22:23:24] ################################################################################
+[22:23:24] [14/14] MODEL: base_llama_COT  (elapsed so far: 116.6 min)
+[22:23:24] ################################################################################
+[22:23:24] ✗ Failed to load base_llama_COT: We couldn't connect to 'https://huggingface.co' to load this file, couldn't find it in the cached files and it looks like aleynabeste/base_llama_intruct_COT_FT is not the path to a directory containin
+[22:23:24]    💾 checkpoint saved [load_fail:base_llama_COT]: results_23j_complete_20260720_202647.json (32438 KB)
+[22:23:24] 
+[22:23:24] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[22:23:24] ABORTING: 2 consecutive load failures — this looks systemic
+[22:23:24] (e.g. wrong kernel / torch flag / missing HF cache), not a per-model issue.
+[22:23:24] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[22:23:24] 
+[22:23:24] ================================================================================
+[22:23:24] All models processed. Total wall-clock: 116.6 min
+[22:23:24] Final checkpoint: results_23j_checkpoint.json
+[22:23:24] Timestamped file: results_23j_complete_20260720_202647.json
+[22:23:24] Progress log:     results_23j_progress_20260720_202647.log
+[22:23:24] ================================================================================

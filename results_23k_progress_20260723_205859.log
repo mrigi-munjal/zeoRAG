@@ -1,0 +1,33 @@
+[20:58:59] Expected questions per model: 100
+[20:58:59] Progress log: results_23k_progress_20260723_205859.log
+[20:58:59] ✓ Loaded existing checkpoint — 7 models already complete overall
+[20:58:59]     ✓ Llama-3-8B-Instruct
+[20:58:59]     ✓ DAPT_LR1e5
+[20:58:59]     ✓ synv2V2_step80
+[20:58:59]     ✓ synv2V2_final
+[20:58:59]     ✓ synv2_base_step80
+[20:58:59]     ✓ synv2_base_final
+[20:58:59]     ✓ fullpaper_120M_LR1e5
+[20:58:59] 
+[20:58:59] ################################################################################
+[20:58:59] [1/7] MODEL: DAPT_LR1e5_COT  (elapsed so far: 0.0 min)
+[20:58:59] ################################################################################
+[20:59:20] ✗ Failed to load DAPT_LR1e5_COT: Can't find weights for aleynabeste/AllClassesAbstracts70Mmodel_LR1e5_COT in aleynabeste/AllClassesAbstracts70Mmodel_LR1e5_COT or in the Hugging Face Hub. Please check that the file adapter_model.bin i
+[20:59:20]    💾 checkpoint saved [load_fail:DAPT_LR1e5_COT]: results_23k_complete_20260723_205859.json (32438 KB)  + results_23j_checkpoint.json
+[20:59:20] 
+[20:59:20] ################################################################################
+[20:59:20] [2/7] MODEL: synv2V2_step80_COT  (elapsed so far: 0.3 min)
+[20:59:20] ################################################################################
+[20:59:45] ✗ Failed to load synv2V2_step80_COT: Can't find weights for aleynabeste/model_LR1e5v3_synv2V2_step80_COT_FT in aleynabeste/model_LR1e5v3_synv2V2_step80_COT_FT or in the Hugging Face Hub. Please check that the file adapter_model.bin is pr
+[20:59:46]    💾 checkpoint saved [load_fail:synv2V2_step80_COT]: results_23k_complete_20260723_205859.json (32438 KB)  + results_23j_checkpoint.json
+[20:59:46] 
+[20:59:46] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[20:59:46] ABORTING: 2 consecutive load failures — systemic (auth, disk, network?)
+[20:59:46] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[20:59:46] 
+[20:59:46] ================================================================================
+[20:59:46] 23k recovery complete. Total wall-clock: 0.8 min
+[20:59:46] Merged checkpoint: results_23j_checkpoint.json
+[20:59:46] This-run snapshot: results_23k_complete_20260723_205859.json
+[20:59:46] Progress log:      results_23k_progress_20260723_205859.log
+[20:59:46] ================================================================================
